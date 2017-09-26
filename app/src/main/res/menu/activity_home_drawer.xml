@@ -3,41 +3,41 @@
 
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/home"
+            android:id="@+id/nav_home"
             android:icon="@drawable/ic_menu_camera"
             android:title="Home" />
         <item
-            android:id="@+id/profile"
+            android:id="@+id/nav_profile"
             android:icon="@drawable/ic_menu_gallery"
             android:title="Profile" />
         <item
-            android:id="@+id/companies"
+            android:id="@+id/nav_companies"
             android:icon="@drawable/ic_menu_slideshow"
             android:title="Companies" />
         <item
-            android:id="@+id/placement"
-            android:icon="@drawable/ic_menu_slideshow"
+            android:id="@+id/nav_placement"
+            android:icon="@drawable/ic_menu_manage"
             android:title="Placement" />
         <item
-            android:id="@+id/internship"
+            android:id="@+id/nav_internship"
             android:icon="@drawable/ic_menu_manage"
             android:title="Internship" />
         <item
-            android:id="@+id/forum"
-            android:icon="@drawable/ic_menu_slideshow"
-            android:title="Forum/Feedback" />
+            android:id="@+id/nav_feedback"
+            android:icon="@drawable/ic_menu_manage"
+            android:title="Forum Feedback" />
     </group>
 
     <item android:title="Communicate">
         <menu>
             <item
-                android:id="@+id/contacts"
+                android:id="@+id/nav_chat"
                 android:icon="@drawable/ic_menu_share"
-                android:title="Contacts" />
-            <item
-                android:id="@+id/chat"
-                android:icon="@drawable/ic_menu_send"
                 android:title="Chat" />
+            <item
+                android:id="@+id/nav_contact"
+                android:icon="@drawable/ic_menu_send"
+                android:title="Contacts" />
         </menu>
     </item>
 

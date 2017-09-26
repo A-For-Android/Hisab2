@@ -2,10 +2,15 @@ package com.wix.traitsoft.tpo_mnnit;
 
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.util.Pair;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -28,11 +33,14 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import static android.R.attr.name;
+import static android.os.Build.VERSION_CODES.N;
+import static com.wix.traitsoft.tpo_mnnit.R.id.login;
 
-public class Login extends AppCompatActivity {
+public class Login extends AppCompatActivity implements Intern_Placement {
 
     String registration;
     String password;
@@ -41,10 +49,24 @@ public class Login extends AppCompatActivity {
     Button signin;
     Button signup;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+
+        Session session = new Session(this);
+        boolean isnull = session.isNull();
+        if(!isnull)
+        {
+            Pair<String,String> hm;
+            hm = session.getDetails();
+            String key = hm.first;
+            Intent i = new Intent(getApplicationContext(), Home.class);
+            i.putExtra("username",key);
+            startActivity(i);
+        }
 
         reg = (EditText)findViewById(R.id.registration);
         passwd = (EditText)findViewById(R.id.password);
@@ -56,25 +78,7 @@ public class Login extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                registration = reg.getText().toString();
-                registration = registration.trim();
-                password = passwd.getText().toString();
-
-                if(checkreg())
-                {
-                    if(checkpasswd())
-                    {
-                        login(registration,password);
-                    }
-                    else
-                    {
-                        passwd.setError("Password too Short!");
-                    }
-                }
-                else
-                {
-                    reg.setError("Invalid Registration No.!");
-                }
+                login();
 
             }
         });
@@ -83,139 +87,11 @@ public class Login extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                registration = reg.getText().toString();
-                registration = registration.trim();
-                password = passwd.getText().toString();
-
-                insertToDatabase(registration,password);
+                signup();
 
             }
         });
     }
-
-
-
-    private void insertToDatabase(String name, String add){
-        class SendPostReqAsyncTask extends AsyncTask<String, Void, String> {
-            @Override
-            protected String doInBackground(String... params) {
-                String paramUsername = params[0];
-                String paramAddress = params[1];
-
-                String uname = registration;
-                String passwd = password;
-
-                List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
-                nameValuePairs.add(new BasicNameValuePair("username", uname));
-                nameValuePairs.add(new BasicNameValuePair("password", passwd));
-
-                try {
-                    HttpClient httpClient = new DefaultHttpClient();
-                    HttpPost httpPost = new HttpPost(
-                            "https://one-eyed-rewards.000webhostapp.com/conn.php");
-                    httpPost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
-
-                    HttpResponse response = httpClient.execute(httpPost);
-
-                    HttpEntity entity = response.getEntity();
-
-
-                } catch (ClientProtocolException e) {
-
-                } catch (IOException e) {
-
-                }
-                return "success";
-            }
-
-            @Override
-            protected void onPostExecute(String result) {
-                super.onPostExecute(result);
-
-                Toast.makeText(getApplicationContext(), result, Toast.LENGTH_LONG).show();
-            }
-        }
-        SendPostReqAsyncTask sendPostReqAsyncTask = new SendPostReqAsyncTask();
-        sendPostReqAsyncTask.execute(name, add);
-    }
-
-
-    private void login(final String username, String password1) {
-
-        class LoginAsync extends AsyncTask<String, Void, String>{
-
-            private Dialog loadingDialog;
-
-            @Override
-            protected void onPreExecute() {
-                super.onPreExecute();
-                loadingDialog = ProgressDialog.show(Login.this, "Please wait", "Loading...");
-            }
-
-            @Override
-            protected String doInBackground(String... params) {
-                String uname = params[0];
-                String pass = params[1];
-
-                InputStream is = null;
-                ArrayList<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
-                nameValuePairs.add(new BasicNameValuePair("username", registration));
-                nameValuePairs.add(new BasicNameValuePair("password", password));
-                String result = null;
-
-                try{
-                    HttpClient httpClient = new DefaultHttpClient();
-                    HttpPost httpPost = new HttpPost(
-                            "https://one-eyed-rewards.000webhostapp.com/login.php");
-                    httpPost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
-
-                    HttpResponse response = httpClient.execute(httpPost);
-
-                    HttpEntity entity = response.getEntity();
-
-                    is = entity.getContent();
-
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"), 8);
-                    StringBuilder sb = new StringBuilder();
-
-                    String line;
-                    while ((line = reader.readLine()) != null)
-                    {
-                        sb.append(line + "\n");
-                    }
-                    result = sb.toString();
-                } catch (ClientProtocolException e) {
-                    e.printStackTrace();
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return result;
-            }
-
-            @Override
-            protected void onPostExecute(String result){
-                String s = result.trim();
-                Toast.makeText(Login.this, s, Toast.LENGTH_LONG).show();
-                loadingDialog.dismiss();
-                if(s.equalsIgnoreCase("success")){
-                    Intent intent = new Intent(Login.this, Home.class);
-                    intent.putExtra("username", username);
-                    finish();
-                    startActivity(intent);
-                }else {
-                    Toast.makeText(getApplicationContext(), "Invalid User Name or Password", Toast.LENGTH_LONG).show();
-                }
-            }
-        }
-
-        LoginAsync la = new LoginAsync();
-        la.execute(username, password);
-
-    }
-
-
 
     private boolean checkreg()
     {
@@ -231,4 +107,67 @@ public class Login extends AppCompatActivity {
         return registration.length() >= 4;
     }
 
+    @Override
+    public void login() {
+        registration = reg.getText().toString();
+        registration = registration.trim();
+        password = passwd.getText().toString();
+
+        Connection connection = new Connection(Login.this);
+        if(connection.checkConnection()==0)
+            Toast.makeText(getApplicationContext(), "No Internet Access", Toast.LENGTH_LONG).show();
+
+        else
+        {
+            if(checkreg())
+            {
+                if(checkpasswd())
+                {
+                    Network network = new Network(Login.this);
+                    network.execute(registration,password,"login");
+                }
+                else
+                {
+                    passwd.setError("Password too Short!");
+                }
+            }
+            else
+            {
+                reg.setError("Invalid Registration No.!");
+            }
+        }
+    }
+
+    @Override
+    public void signup() {
+
+        registration = reg.getText().toString();
+        registration = registration.trim();
+        password = passwd.getText().toString();
+
+        Connection connection = new Connection(Login.this);
+        if(connection.checkConnection()==0)
+            Toast.makeText(getApplicationContext(), "No Internet Access", Toast.LENGTH_LONG).show();
+
+        else
+        {
+            if(checkreg())
+            {
+                if(checkpasswd())
+                {
+                    Network network = new Network(Login.this);
+                    network.execute(registration,password,"signup");
+                }
+                else
+                {
+                    passwd.setError("Password too Short!");
+                }
+            }
+            else
+            {
+                reg.setError("Invalid Registration No.!");
+            }
+        }
+
+    }
 }
